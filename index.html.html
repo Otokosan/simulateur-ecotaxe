@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulateur de malus écologique à l’importation</title>
+<style>
+/* PALETTE (dérivée des couleurs du logo de référence) : seul bloc à modifier pour changer les couleurs */
+:root{--p:#21409a;--p-d:#15296a;--p-dd:#0e1d4d;--acc:#f5821f;--acc-d:#d96a0b;--tint:#e8ecf7;--bg:#f4f6fb;--card:#fff;--ink:#0f1a3d;--mut:#4b5675;--line:#d5dbeb;--err:#a8400a;--errbg:#fef1e7;--r:14px}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--p-dd),var(--p));color:#fff;padding:36px 20px 40px;border-bottom:5px solid var(--acc)}
+header::after{content:"";position:absolute;right:-60px;top:0;bottom:0;width:300px;background:rgba(255,255,255,.07);transform:skewX(-18deg)}
+header div,main{max-width:1120px;margin:0 auto;position:relative;z-index:1}
+.eyebrow{display:inline-block;font-size:1.59rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin-bottom:6px}
+h1{margin:0 0 8px;font-size:clamp(1.2rem,2.5vw,1.7rem);letter-spacing:-.01em;line-height:1.2}
+header p{margin:0;opacity:.88;max-width:none}
+main{display:grid;gap:24px;padding:28px 20px 48px}
+@media(min-width:920px){main{grid-template-columns:1.05fr .95fr;align-items:start}#result{position:sticky;top:16px}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:28px;box-shadow:0 2px 6px rgba(15,26,61,.06),0 12px 28px -18px rgba(15,26,61,.25)}
+fieldset{border:0;padding:0;margin:0 0 22px}
+legend{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--p);padding:0 0 10px;margin-bottom:14px;border-bottom:2px solid var(--tint);width:100%}
+legend::before{content:"";width:10px;height:22px;background:var(--acc);transform:skewX(-18deg);border-radius:2px}
+.f{margin-bottom:18px}
+label{display:block;font-weight:600;margin-bottom:6px}
+.hint{display:block;font-size:.875rem;color:var(--mut);font-weight:400}
+input[type=date],input[type=text],select{width:100%;min-height:50px;padding:10px 14px;font:inherit;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;transition:border-color .15s,box-shadow .15s}
+select{appearance:none;-webkit-appearance:none;padding-right:42px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%2321409a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
+input:hover,select:hover{border-color:var(--p)}
+input:focus,select:focus,button:focus-visible,summary:focus-visible,#result:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 4px rgba(245,130,31,.28)}
+input[aria-invalid=true]{border-color:var(--err);background:var(--errbg)}
+.err{color:var(--err);font-size:.9rem;font-weight:600;margin:6px 0 0}
+.err:empty{display:none}
+.info{display:flex;gap:10px;align-items:flex-start;background:var(--tint);border-left:4px solid var(--acc);border-radius:8px;padding:12px 14px;font-size:.92rem;color:var(--p-d);margin-bottom:18px}
+.chk{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:10px;cursor:pointer;min-height:50px;transition:border-color .15s,background .15s}
+.chk:hover{border-color:var(--p);background:var(--tint)}
+.chk input{width:22px;height:22px;margin-top:2px;accent-color:var(--p);flex:none}
+.chk span{font-weight:600}
+.opt{border:1.5px solid var(--line);border-radius:10px;padding:0 14px;margin-bottom:22px}
+.opt summary{min-height:50px;display:flex;align-items:center;font-weight:600;color:var(--p);cursor:pointer}
+.opt[open] summary{margin-bottom:8px}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.btn{min-height:50px;padding:0 28px;font:inherit;font-weight:700;border-radius:10px;border:2px solid var(--p);cursor:pointer;background:var(--p);color:#fff;transition:background .15s,transform .05s}
+.btn:hover{background:var(--p-d);border-color:var(--p-d)}
+.btn:active{transform:translateY(1px)}
+.btn.sec{background:#fff;color:var(--p)}
+.btn.sec:hover{background:var(--tint);border-color:var(--p)}
+#result .empty{color:var(--mut)}
+#result.done{border:2px solid var(--p)}
+.hero{background:var(--tint);border-left:6px solid var(--acc);border-radius:10px;padding:16px 20px;margin-bottom:6px}
+.lbl{margin:0;font-weight:700;color:var(--mut);text-transform:uppercase;font-size:.78rem;letter-spacing:.07em}
+.amount{margin:2px 0 10px;font-size:clamp(2.5rem,6vw,3.5rem);font-weight:800;color:var(--p);line-height:1.1;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:.8rem;font-weight:600;background:#fff;border:1.5px solid var(--line);color:var(--p-d);padding:3px 10px;border-radius:99px}
+h3{font-size:1rem;margin:22px 0 8px;color:var(--p)}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+td{padding:9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px}
+tr.m td{color:var(--mut);font-size:.88rem;padding:4px 0 4px 16px;border-bottom:0}
+tr.m td:last-child{padding-left:12px}
+tr.tot td{font-weight:800;border-bottom:2px solid var(--p);border-top:1px solid var(--line);color:var(--p)}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 16px;font-size:.92rem}
+dt{color:var(--mut)}dd{margin:0;font-weight:600;text-align:right}
+ul.notes{list-style:none;margin:0;padding:0;font-size:.9rem}
+ul.notes li{padding:9px 0;border-bottom:1px solid var(--line)}
+.tag{display:inline-block;font-size:.7rem;font-weight:700;padding:1px 8px;border-radius:99px;margin-right:6px;border:1.5px solid var(--p);text-transform:uppercase;letter-spacing:.03em}
+.t-cert{background:var(--p);color:#fff}.t-hyp{background:#fff;color:var(--p)}.t-saisie{background:var(--tint);color:var(--p-d)}
+.box{border:2px solid var(--err);background:var(--errbg);border-radius:10px;padding:14px 18px;color:var(--ink)}
+.box strong{color:var(--err)}
+.box p{margin:6px 0 0}
+[hidden]{display:none!important}
+footer{font-size:.85rem;color:var(--mut);max-width:1120px;margin:0 auto;padding:0 20px 36px}
+</style>
+</head>
+<body>
+<header><div>
+<span class="eyebrow">Simulateur</span>
+<h1>Malus écologique à l’importation</h1>
+<p>Estimez le malus CO₂ et le malus au poids dus lors de la première immatriculation en France d’un véhicule déjà immatriculé à l’étranger.</p>
+</div></header>
+
+<main>
+<form id="f" class="card" novalidate aria-label="Caractéristiques du véhicule">
+<fieldset><legend>Votre véhicule</legend>
+<div class="f"><label for="d1">Date de 1re immatriculation à l’étranger<span class="hint">Case B du certificat d’immatriculation étranger</span></label>
+<input type="date" id="d1" aria-describedby="e-d1"><p class="err" id="e-d1" role="alert"></p></div>
+<input type="hidden" id="d2"><p class="err" id="e-d2" role="alert"></p>
+<div class="f" id="f-co2"><label for="co2">Émissions de CO₂ (g/km)<span class="hint">Rubrique V.7 de la carte grise</span></label>
+<input type="text" id="co2" inputmode="numeric" autocomplete="off" aria-describedby="e-co2"><p class="err" id="e-co2" role="alert"></p></div>
+<div class="f" id="f-cv" hidden><label for="cv">Puissance administrative (CV)<span class="hint">Rubrique P.6 de la carte grise</span></label>
+<input type="text" id="cv" inputmode="numeric" autocomplete="off" aria-describedby="e-cv"><p class="err" id="e-cv" role="alert"></p></div>
+<div class="f" id="f-mass"><label for="mass">Masse en ordre de marche (kg)<span class="hint">Rubrique G de la carte grise</span></label>
+<input type="text" id="mass" inputmode="numeric" autocomplete="off" aria-describedby="e-mass"><p class="err" id="e-mass" role="alert"></p></div>
+<div class="info" id="mass-info" hidden><span>Masse non demandée : le malus au poids n’existe que pour les véhicules dont la 1re immatriculation date de 2022 ou après.</span></div>
+</fieldset>
+
+<details class="opt"><summary>Options : motorisation, norme CO₂, E85, exonérations</summary>
+<div class="f"><label for="energie">Motorisation</label>
+<select id="energie"><option value="therm">Essence, diesel, GPL ou autre thermique</option><option value="hnr">Hybride non rechargeable (≥ 30 kW électriques)</option><option value="mh">Micro-hybride (&lt; 30 kW électriques)</option><option value="hr">Hybride rechargeable (autonomie &gt; 50 km)</option><option value="elec">Électrique ou hydrogène</option></select></div>
+<div class="f"><label for="mesure">Norme de mesure du CO₂<span class="hint">À modifier uniquement dans les cas particuliers</span></label>
+<select id="mesure"><option value="auto">Automatique (WLTP à partir du 01/03/2020, sinon NEDC)</option><option value="nedc">NEDC (rubrique V.9 du certificat)</option><option value="cv">Sans réception UE (puissance administrative)</option></select></div>
+<label class="chk" id="f-e85"><input type="checkbox" id="e85"><span>Équipé pour le superéthanol E85</span></label>
+<label class="chk"><input type="checkbox" id="pm"><span>8 places assises ou plus, détenu par une personne morale</span></label>
+<label class="chk"><input type="checkbox" id="handi"><span>Exonération handicap (CMI invalidité, carte d’invalidité militaire, accessible en fauteuil roulant)</span></label>
+</details>
+
+<div class="row"><button class="btn" type="submit">Calculer le malus</button><button class="btn sec" type="reset">Réinitialiser</button></div>
+</form>
+
+<section id="result" class="card" tabindex="-1" aria-live="polite" aria-label="Résultat du calcul">
+<p class="empty">Renseignez le formulaire puis lancez le calcul : le montant et son détail s’afficheront ici.</p>
+</section>
+</main>
+<footer>Simulation indicative, non opposable à l’administration. Elle ne comprend ni la taxe fixe ni la taxe régionale de la carte grise.</footer>
+
+<script>
+"use strict";
+/* ========== DONNÉES RÉGLEMENTAIRES ========== */
+// Barèmes CO₂ 2020-2026 (Service-Public, Légifrance) : suites communes de montants par gramme
+const HEAD=[50,75,100,125,150,170,190,210,230,240,260,280,310,330,360,400,450,540,650,740,818,898,983,1074,1172,1276,1386,1504,1629,1761,1901,2049,2205,2370,2544,2726,2918,3119,3331,3552,3784,4026,4279,4543,4818,5105,5404,5715];
+const TA=[6039,6375,6724,7086,7462,7851,8254,8671,9103,9550,10011,10488,10980,11488,12012,12552,13109,13682,14273,14881,15506,16149,16810,17490,18188,18905,19641,20396,21171,21966,22781,23616,24472,25349,26247,27166,28107,29070,30056,31063,32094,33147,34224,35324,36447,37595,38767,39964,41185,42431,43703,45000,46323,47672,49047];
+const TB=[6126,6537,7248,7959,8770,9681,10692,11803,13014,14325,15736,17247,18858,20569,22380,24291,26302,28413,30624,32935,35346,37857,40468,43179,45990,48901,51912,55023,58134,61245,64356,67467,70578,73689,76800,79911];
+const SA=HEAD.concat(TA), SB=HEAD.concat(TB);
+// Barèmes NEDC 2017-2018 : suite 50, 53, 60, 73, 90… (écarts +3, +7, +13, +17, +23…) reconstituée et recoupée
+const OLD=n=>{const a=[];let s=50;for(let k=0;k<n;k++){a.push(s);s+=k%2?5*k+2:5*k+3}return a};
+// Barème NEDC 2019 (de 117 à 190 g/km) : tableau de l’amendement du Gouvernement adopté (PLF 2019, art. 33, n° I-2644)
+const T19=[35,40,45,50,55,60,65,70,75,80,85,90,113,140,173,210,253,300,353,410,473,540,613,690,773,860,953,1050,1101,1153,1260,1373,1490,1613,1740,1873,2010,2153,2300,2453,2610,2773,2940,3113,3290,3473,3660,3756,3853,4050,4253,4460,4673,4890,5113,5340,5573,5810,6053,6300,6553,6810,7073,7340,7613,7890,8173,8460,8753,9050,9353,9660,9973,10290];
+// Barème par tranches 2015-2016 : [à partir de (g/km), montant]
+const STEP16=[[131,150],[136,250],[141,500],[146,900],[151,1600],[156,2200],[176,3000],[181,3600],[186,4000],[191,6500],[201,8000]];
+const W=(s,n,cap,q)=>({s,n,cap,q});               // s = seuil (g/km), n = nombre de paliers listés, cap = montant au-delà
+const NEDC=W(110,75,20000,SA);                      // barème NEDC 2020, repris pour 2020-2026
+// Tranches du malus masse : [de kg, à kg, €/kg] (aucun malus masse avant 2022)
+const M23=[[1800,Infinity,10]];
+const M45=[[1600,1799,10],[1800,1899,15],[1900,1999,20],[2000,2099,25],[2100,Infinity,30]];
+const M26=[[1500,1699,10],[1700,1799,15],[1800,1899,20],[1900,1999,25],[2000,Infinity,30]];
+const CV20={f:6,v:[3125,3125,6250,6250,9375,9375,12500,12500,15625,15625,18750,18750],cap:20000};
+const CV1819={f:6,v:[3000,3000,5000,5000,8000,8000,9000,9000,9000,9000,9000],cap:10500}; // 6-7 CV : 3 000 € … 12-16 CV : 9 000 € ; > 16 CV : 10 500 €
+const NOTE_OLD=['hyp','Barème NEDC de cette année : début de tableau confirmé par Légifrance, valeurs suivantes recoupées auprès de plusieurs sources concordantes mais non relues ligne à ligne sur Légifrance.'];
+const NOTE_S16=['hyp','Barème par tranches 2015-2016 (identique les deux années selon la presse spécialisée), recoupé auprès de plusieurs sources et d’un amendement parlementaire (seuil 131 g, plafond 8 000 € à 201 g) ; non relu sur Légifrance.'];
+const NOTE_19=['cert','Barème 2019 : tableau de l’amendement n° I-2644 adopté (loi de finances pour 2019, art. 33), reproduit tel quel.'];
+const REGIMES=[
+ {id:'2015',label:'2015',from:'2015-01-01',to:'2015-12-31',wltp:null,nedc:{step:STEP16},cv:null,mass:null,plafond:8000,note:NOTE_S16},
+ {id:'2016',label:'2016',from:'2016-01-01',to:'2016-12-31',wltp:null,nedc:{step:STEP16},cv:null,mass:null,plafond:8000,note:NOTE_S16},
+ {id:'2017',label:'2017',from:'2017-01-01',to:'2017-12-31',wltp:null,nedc:W(127,64,10000,OLD(64)),cv:null,mass:null,plafond:10000,note:NOTE_OLD},
+ {id:'2018',label:'2018',from:'2018-01-01',to:'2018-12-31',wltp:null,nedc:W(120,65,10500,OLD(65)),cv:CV1819,mass:null,plafond:10500,note:NOTE_OLD,cvNote:['cert','Barème en puissance administrative 2018 : texte de l’art. 1011 bis du CGI (version du 01/01/2018).']},
+ {id:'2019',label:'2019',from:'2019-01-01',to:'2019-12-31',wltp:null,nedc:W(117,74,10500,T19),cv:CV1819,mass:null,plafond:10500,note:NOTE_19,cvNote:['hyp','Barème en puissance administrative 2019 : déclaré stable par rapport à 2018 (Observatoire du véhicule d’entreprise) et cohérent avec la doctrine BOFiP (11 CV : 8 000 €).']},
+ {id:'2020a',label:'du 01/01/2020 au 29/02/2020',from:'2020-01-01',to:'2020-02-29',wltp:null,cv:CV20,mass:null,plafond:20000},
+ {id:'2020b',label:'du 01/03/2020 au 31/12/2020',from:'2020-03-01',to:'2020-12-31',wltp:W(138,75,20000,SA),cv:CV20,mass:null,plafond:20000},
+ {id:'2021',label:'2021',from:'2021-01-01',to:'2021-12-31',wltp:W(133,86,30000,SA),cv:{f:5,v:[250,2825,3425,5950,6550,9075,9675,12200,12800,15325,15925,18450,19150,22500,25000,27500],cap:30000},mass:null,plafond:30000},
+ {id:'2022',label:'2022',from:'2022-01-01',to:'2022-12-31',wltp:W(128,96,40000,SA),cv:{f:5,v:[1000,3000,4000,6000,7000,9250,10500,12500,13500,15625,16500,19250,21000,23500,26000,28500,31000,33500,36000,38500],cap:40000},mass:M23,plafond:40000,kg:400},
+ {id:'2023',label:'2023',from:'2023-01-01',to:'2023-12-31',wltp:W(123,103,50000,SA),cv:{f:4,v:[500,2250,3500,4750,6500,8000,9500,11500,12750,14500,16000,18750,20500,23000,25500,28000,30500,33000,35500,38000,40000,42500,45000,47500],cap:50000},mass:M23,plafond:50000,kg:400},
+ {id:'2024',label:'du 01/01/2024 au 28/02/2025',from:'2024-01-01',to:'2025-02-28',wltp:W(118,76,60000,SB),cv:{f:4,v:[1000,3250,5000,6750,10750,15750,22500,28500,35500,43250,52000],cap:60000},mass:M45,plafond:60000,kg:500},
+ {id:'2025',label:'du 01/03/2025 au 31/12/2025',from:'2025-03-01',to:'2025-12-31',wltp:W(113,80,70000,SB),cv:{f:3,v:[250,1500,4000,6250,8500,13000,18500,25750,32250,39750,48000,57250],cap:70000},mass:M45,plafond:70000,kg:500},
+ {id:'2026',label:'2026',from:'2026-01-01',to:'2026-12-31',wltp:W(108,84,80000,SB),cv:{f:3,v:[500,2000,4750,7500,10250,15250,21250,29000,36000,44000,52750,62500],cap:80000},mass:M26,plafond:80000,kg:600,co2Cut:90,cvCut:4}
+];
+// Décote forfaitaire selon l’ancienneté en mois : [jusqu’à (mois), %] ; au-delà de 180 mois : 100 %
+const DEC=[[3,3],[6,6],[9,9],[12,12],[18,16],[24,20],[36,28],[48,33],[60,38],[72,43],[84,48],[96,53],[108,58],[120,64],[132,70],[144,76],[156,82],[168,88],[180,94]];
+const MASS_FROM='2022-01-01'; // le malus au poids n’existe qu’à partir de 2022
+/* ========== FIN DES DONNÉES ========== */
+
+const $=id=>document.getElementById(id);
+const FIELDS=['d1','d2','co2','cv','mass'];
+const eur=n=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);
+const fd=s=>s.split('-').reverse().join('/');
+const reg=d=>REGIMES.find(r=>d>=r.from&&d<=r.to);
+const tbl=(t,g)=>t.step?t.step.reduce((a,[g0,m])=>g>=g0?m:a,0):(g<t.s?0:(g-t.s<t.n?t.q[g-t.s]:t.cap));
+const cvAmt=(t,c)=>c<t.f?0:(c-t.f<t.v.length?t.v[c-t.f]:t.cap);
+const massAmt=(tr,m)=>tr.reduce((s,[a,b,k])=>s+Math.max(0,Math.min(m,b)-a+1)*k,0);
+function months(a,b){const A=a.split('-').map(Number),B=b.split('-').map(Number);let m=(B[0]-A[0])*12+B[1]-A[1];if(B[2]<A[2])m--;return Math.max(m,0)}
+const decote=m=>m<1?0:(DEC.find(x=>m<=x[0])||[0,100])[1];
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+
+function read(){return{d1:$('d1').value,d2:today(),mesure:$('mesure').value,co2:$('co2').value.trim(),cv:$('cv').value.trim(),mass:$('mass').value.trim(),energie:$('energie').value,e85:$('e85').checked,pm:$('pm').checked,handi:$('handi').checked}}
+const exempt=v=>v.handi||v.energie==='elec';
+const needMass=v=>v.d1>=MASS_FROM;
+function validate(v){
+ const e={};
+ if(!v.d1)e.d1='Erreur : indiquez la date de 1re immatriculation à l’étranger.';
+ else if(v.d1>v.d2)e.d1='Erreur : la date ne peut pas être postérieure à aujourd’hui.';
+ if(v.d1&&!exempt(v)){
+  const ok=(s,a,b)=>/^\d+$/.test(s)&&+s>=a&&+s<=b;
+  if(v.mesure==='cv'){if(!ok(v.cv,1,60))e.cv='Erreur : saisissez un entier entre 1 et 60.'}
+  else if(!ok(v.co2,0,999))e.co2='Erreur : saisissez un entier entre 0 et 999 (g/km).';
+  if(needMass(v)&&!ok(v.mass,500,9000))e.mass='Erreur : saisissez une masse entière entre 500 et 9 000 kg.';
+ }
+ return e;
+}
+
+function compute(v){
+ const N=[],rc=[['1re immatriculation étranger',fd(v.d1)],['Immatriculation en France (date du jour)',fd(v.d2)]];
+ const out=(total,lines,notes,meta)=>({total,lines,notes,recap:rc,meta});
+ if(v.handi)return out(0,[['Exonération handicap',0]],[['cert','Véhicule exonéré de malus CO₂ et de malus masse (un seul véhicule par bénéficiaire, copie de la carte à joindre).']]);
+ if(v.energie==='elec')return out(0,[['Exonération électrique / hydrogène',0]],[['cert','Véhicule exclusivement électrique ou hydrogène : exonéré de malus CO₂ et de malus masse.']]);
+ if(v.d1<'2015-01-01')return out(0,[['Véhicule de plus de 181 mois (1re immat. avant 2015)',0]],[['cert','Le malus est nul pour une 1re immatriculation à l’étranger antérieure au 1er janvier 2015.']]);
+ const r=reg(v.d1);
+ if(!r)return{missing:'Aucun barème n’est encore intégré pour une 1re immatriculation postérieure à 2026.'};
+ let mes=v.mesure;
+ if(mes==='cv'&&!r.cv)return{missing:'Le barème en puissance administrative applicable en '+r.label+' n’est pas intégré : il n’a pu être vérifié auprès de sources officielles. Aucun montant n’est affiché plutôt qu’un montant inventé.'};
+ if(mes==='auto'){mes=r.wltp?'wltp':'nedc';if(!r.wltp)N.push(['cert','Avant le 1er mars 2020, seul un barème NEDC existe : les émissions sont lues avec le barème NEDC de l’année.'])}
+ const mo=months(v.d1,v.d2),pc=decote(mo),therm=v.energie==='therm';
+ const mlab={wltp:'WLTP (automatique)',nedc:'NEDC',cv:'Sans réception UE'}[mes];
+ const elab={therm:'Thermique',hnr:'Hybride non rechargeable',mh:'Micro-hybride',hr:'Hybride rechargeable'}[v.energie];
+ rc.push(['Norme de mesure',mes==='nedc'&&v.mesure==='auto'?'NEDC (automatique)':mlab]);
+ if(mes==='cv')rc.push(['Puissance administrative',v.cv+' CV']);else rc.push(['CO₂',v.co2+' g/km']);
+ if(r.mass)rc.push(['Masse en ordre de marche',v.mass+' kg']);
+ rc.push(['Motorisation',elab]);
+ N.push(['cert','Barème appliqué : 1re immatriculation à l’étranger '+r.label+'.']);
+ if(r.note)N.push(r.note);
+ let co2,l1;
+ if(mes==='cv'){
+  let c=+v.cv;
+  if(v.e85&&therm&&c<=12){c-=2;N.push(['cert','E85 : réduction de 2 CV administratifs (puissance ≤ 12 CV).'])}
+  if(v.pm){if(r.cvCut){c=Math.max(c-r.cvCut,0);N.push(['cert','Personne morale (≥ 8 places) : réduction de '+r.cvCut+' CV.'])}else N.push(['hyp','Réduction « personne morale » en CV : valeur non intégrée pour ce millésime, non appliquée.'])}
+  co2=cvAmt(r.cv,c);l1='Malus CO₂ – puissance administrative ('+c+' CV retenus)';
+  if(r.cvNote)N.push(r.cvNote);
+  if(r.id.slice(0,4)==='2020')N.push(['hyp','Barème CV 2020 lu dans la version du 01/07/2020 de l’art. 1011 bis du CGI ; supposé identique sur toute l’année 2020.']);
+ }else{
+  let g=+v.co2;
+  if(v.e85&&therm&&g<=250){g=Math.round(g*0.6);N.push(['cert','E85 : abattement de 40 % des émissions (non applicable au-delà de 250 g/km).']);N.push(['hyp','Arrondi à l’entier le plus proche après abattement E85 : règle non précisée par les sources.'])}
+  if(v.pm){if(r.co2Cut){g=Math.max(g-r.co2Cut,0);N.push(['cert','Personne morale (≥ 8 places) : réduction de '+r.co2Cut+' g/km.'])}else N.push(['hyp','Réduction « personne morale » en g/km : valeur non intégrée pour ce millésime, non appliquée.'])}
+  co2=tbl(mes==='nedc'?(r.nedc||NEDC):r.wltp,g);l1='Malus CO₂ – '+(mes==='nedc'?'NEDC':'WLTP')+' ('+g+' g/km retenus)';
+ }
+ let poids=0,l2='Malus masse';
+ if(r.mass){
+  let m=+v.mass,red=0;
+  if(v.energie==='hnr'||v.energie==='mh'){if(r.id==='2026'){red+=100;N.push(['cert','Hybride : masse réduite de 100 kg.'])}else N.push(['hyp','Abattement de masse hybride : valeur non intégrée pour ce millésime, non appliqué (montant possiblement surestimé).'])}
+  if(v.energie==='hr'){if(r.id==='2026'){red+=Math.min(200,.15*m);N.push(['cert','Hybride rechargeable : masse réduite de 200 kg dans la limite de 15 %.'])}else N.push(['hyp','Abattement de masse hybride rechargeable : valeur non intégrée pour ce millésime, non appliqué (montant possiblement surestimé).'])}
+  if(v.pm){red+=r.kg;N.push(['cert','Personne morale (≥ 8 places) : masse réduite de '+r.kg+' kg.'])}
+  m=Math.max(m-red,0);poids=massAmt(r.mass,m);l2='Malus masse ('+Math.round(m)+' kg retenus)';
+ }else N.push(['cert','Pas de malus masse pour une 1re immatriculation avant 2022 (taxe instaurée en 2022) : la masse n’est pas utilisée.']);
+ const pl=r.id==='2024'&&v.d1>='2025-01-01'?70000:r.plafond;
+ if(r.id==='2024'&&pl===70000)N.push(['hyp','Janvier-février 2025 : plafond de 70 000 € retenu (valeur indiquée pour 2025 par Service-Public) alors que le malus CO₂ maximal est alors de 60 000 €.']);
+ // Décote appliquée à chaque taxe, arrondi à l’euro par taxe, puis plafonnement du cumul (plafond lui aussi réduit de la décote)
+ const k=1-pc/100,co2N=Math.round(co2*k),poidsN0=Math.round(poids*k),plN=Math.round(pl*k);
+ let poidsN=poidsN0,capAdj=0;
+ if(co2N+poidsN>plN){poidsN=Math.max(plN-co2N,0);capAdj=poidsN0-poidsN;N.push(['cert','Cumul des deux malus plafonné au malus CO₂ maximal du barème ('+eur(pl)+'), plafond lui aussi réduit de la décote : '+eur(plN)+'.'])}
+ const sub=co2+poids,total=co2N+poidsN,decL=sub-(co2N+poidsN0);
+ N.push(['cert','Décote d’ancienneté : '+mo+' mois depuis la 1re immatriculation à l’étranger, soit '+pc+' %.']);
+ N.push(['hyp','Arrondi à l’euro appliqué séparément à chaque taxe (CO₂, masse), après décote ; la doctrine BOFiP ne détaille que l’arrondi du malus CO₂.']);
+ N.push(['hyp','Ancienneté comptée en mois complets : règle non détaillée par Service-Public.']);
+ const lines=[[l1,co2]];if(r.mass)lines.push([l2,poids]);
+ lines.push(['Sous-total avant décote',sub],['Décote d’ancienneté ('+pc+' %)',-decL]);
+ if(capAdj)lines.push(['Plafonnement du cumul',-capAdj]);
+ if(r.mass){lines.push(['dont malus CO₂ après décote',co2N],['dont malus masse après décote',poidsN])}
+ return out(total,lines,N,{bareme:r.label,mois:mo,decote:pc});
+}
+
+function show(res){
+ const o=$('result');let h;
+ if(res.missing)h='<div class="box" role="alert"><strong>Calcul impossible : donnée réglementaire manquante</strong><p>'+res.missing+'</p></div>';
+ else{
+  const T={cert:['t-cert','Donnée réglementaire'],hyp:['t-hyp','Hypothèse'],saisie:['t-saisie','Saisie']};
+  const m=res.meta;
+  h='<div class="hero"><p class="lbl">Malus estimé à l’importation</p><p class="amount">'+eur(res.total)+'</p>'
+   +(m?'<div class="chips"><span class="chip">Barème '+m.bareme+'</span><span class="chip">Ancienneté : '+m.mois+' mois</span><span class="chip">Décote : '+m.decote+' %</span></div>':'')+'</div>'
+   +'<h3>Décomposition du calcul</h3><table><tbody>'
+   +res.lines.map(l=>'<tr'+(l[0].indexOf('dont')===0?' class="m"':'')+'><td>'+l[0]+'</td><td>'+(l[1]<0?'− ':'')+eur(Math.abs(l[1]))+'</td></tr>').join('')
+   +'<tr class="tot"><td>Total estimé</td><td>'+eur(res.total)+'</td></tr></tbody></table>'
+   +'<h3>Données saisies</h3><dl>'+res.recap.map(x=>'<dt>'+x[0]+'</dt><dd>'+x[1]+'</dd>').join('')+'</dl>'
+   +'<h3>Statut des informations</h3><ul class="notes">'+res.notes.map(n=>'<li><span class="tag '+T[n[0]][0]+'">'+T[n[0]][1]+'</span>'+n[1]+'</li>').join('')+'</ul>'
+   +'<div class="row"><button type="button" class="btn sec" id="edit">Modifier les données</button></div>';
+ }
+ o.innerHTML=h;o.classList.add('done');o.focus();
+ const b=$('edit');if(b)b.onclick=()=>{$('d1').focus();$('f').scrollIntoView({behavior:'smooth'})};
+}
+
+function sync(){
+ const cv=$('mesure').value==='cv';
+ $('f-co2').hidden=cv;$('f-cv').hidden=!cv;
+ $('f-e85').hidden=$('energie').value!=='therm';
+ if($('f-e85').hidden)$('e85').checked=false;
+ const d=$('d1').value,noMass=!!d&&d<MASS_FROM;      // masse masquée avant 2022
+ $('f-mass').hidden=noMass;$('mass-info').hidden=!noMass;
+}
+function clearErrors(){FIELDS.forEach(k=>{$('e-'+k).textContent='';$(k).setAttribute('aria-invalid','false')})}
+
+$('mesure').onchange=$('energie').onchange=sync;
+$('d1').addEventListener('input',sync);$('d1').addEventListener('change',sync);
+$('f').addEventListener('submit',ev=>{
+ ev.preventDefault();
+ const v=read(),e=validate(v);
+ clearErrors();
+ FIELDS.forEach(k=>{if(e[k]){$('e-'+k).textContent=e[k];$(k).setAttribute('aria-invalid','true')}});
+ const first=FIELDS.find(k=>e[k]);
+ if(first){$(first).focus();return}
+ show(compute(v));
+});
+$('f').addEventListener('reset',()=>setTimeout(()=>{
+ sync();clearErrors();
+ $('result').classList.remove('done');
+ $('result').innerHTML='<p class="empty">Renseignez le formulaire puis lancez le calcul : le montant et son détail s’afficheront ici.</p>';
+}));
+sync();
+</script>
+</body>
+</html>

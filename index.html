@@ -117,7 +117,20 @@ footer{font-size:.85rem;color:var(--mut);max-width:1120px;margin:0 auto;padding:
 <section id="result" class="card" tabindex="-1" aria-live="polite" aria-label="Résultat du calcul">
 <p class="empty">Renseignez le formulaire puis lancez le calcul : le montant et son détail s’afficheront ici.</p>
 </section>
+
+<section class="card" style="grid-column: 1 / -1; margin-top: 12px;">
+<h2>Comment fonctionne le calcul du malus écologique à l'importation ?</h2>
+<p>Lors de la première immatriculation en France d'un véhicule d'occasion précédemment immatriculé à l'étranger, le malus écologique (taxe CO2) et le malus au poids (taxe masse) sont calculés selon des règles spécifiques.</p>
+
+<h3>1. La décote d'ancienneté</h3>
+<p>Le montant des taxes est réduit en fonction de l'ancienneté du véhicule depuis sa première mise en circulation. La réfaction appliquée est de 1 % par mois entamé d'ancienneté (soit 12 % par an).</p>
+
+<h3>2. Exonérations et réductions</h3>
+<p>Des abattements ou exonérations totales existent pour les véhicules électriques, les personnes en situation de handicap (carte CMI-I), ainsi que les familles nombreuses ou personnes morales sous certaines conditions.</p>
+</section>
+
 </main>
+
 <footer>Simulation indicative, non opposable à l’administration. Elle ne comprend ni la taxe fixe ni la taxe régionale de la carte grise.</footer>
 
 <script>
@@ -134,7 +147,7 @@ const OLD=n=>{const a=[];let s=50;for(let k=0;k<n;k++){a.push(s);s+=k%2?5*k+2:5*
 const T19=[35,40,45,50,55,60,65,70,75,80,85,90,113,140,173,210,253,300,353,410,473,540,613,690,773,860,953,1050,1101,1153,1260,1373,1490,1613,1740,1873,2010,2153,2300,2453,2610,2773,2940,3113,3290,3473,3660,3756,3853,4050,4253,4460,4673,4890,5113,5340,5573,5810,6053,6300,6553,6810,7073,7340,7613,7890,8173,8460,8753,9050,9353,9660,9973,10290];
 // Barème par tranches 2015-2016 : [à partir de (g/km), montant]
 const STEP16=[[131,150],[136,250],[141,500],[146,900],[151,1600],[156,2200],[176,3000],[181,3600],[186,4000],[191,6500],[201,8000]];
-const W=(s,n,cap,q)=>({s,n,cap,q});               // s = seuil (g/km), n = nombre de paliers listés, cap = montant au-delà
+const W=(s,n,cap,q)=>({s,n,cap,q});                 // s = seuil (g/km), n = nombre de paliers listés, cap = montant au-delà
 const NEDC=W(110,75,20000,SA);                      // barème NEDC 2020, repris pour 2020-2026
 // Tranches du malus masse : [de kg, à kg, €/kg] (aucun malus masse avant 2022)
 const M23=[[1800,Infinity,10]];
